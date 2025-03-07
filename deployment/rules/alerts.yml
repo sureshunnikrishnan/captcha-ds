@@ -1,0 +1,38 @@
+groups:
+  - name: captcha_service_alerts
+    rules:
+      - alert: HighRequestLatency
+        expr: rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High request latency
+          description: "HTTP request latency is above 1s (current value: {{ $value }}s)"
+
+      - alert: RedisDisconnected
+        expr: redis_connection_status == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: Redis connection lost
+          description: "Redis connection has been lost for more than 1 minute"
+
+      - alert: HighErrorRate
+        expr: sum(rate(http_requests_total{status=~"5.*"}[5m])) / sum(rate(http_requests_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High error rate
+          description: "Error rate is above 5% (current value: {{ $value | humanizePercentage }})"
+
+      - alert: CaptchaGenerationStopped
+        expr: rate(captcha_generation_total[15m]) == 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: No CAPTCHA generation activity
+          description: "No CAPTCHAs have been generated in the last 15 minutes"
